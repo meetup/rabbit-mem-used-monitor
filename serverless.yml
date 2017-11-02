@@ -1,0 +1,46 @@
+service: rabbit-mem-used-monitor
+
+provider:
+  name: aws
+  runtime: python2.7
+  timeout: 120
+  memorySize: 512
+  stage: qa
+  profile: qa
+  vpc:
+    securityGroupIds:
+      - sg-e1a08f9b
+      
+    subnetIds:
+      - subnet-3406b77d
+      - subnet-0dfc3856
+      - subnet-e6d514cb
+      
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - "logs:*"
+        - "ec2:*"
+        - "ecs:*"
+      Resource: "*"
+
+    - Effect: "Allow"
+      Action:
+        - "cloudwatch:*"
+        - "sns:*"
+      Resource: "*"
+
+  environment:
+    stage: qa
+    RABBIT_USERNAME: ${env:RABBIT_USERNAME}
+    RABBIT_PASSWORD: ${env:RABBIT_PASSWORD}    
+
+package:
+  include:
+    - .vendor/**
+
+functions:
+  main:
+    handler: rabbit-mem-used-monitor.main
+    events:
+      - schedule: rate(5 minutes)
